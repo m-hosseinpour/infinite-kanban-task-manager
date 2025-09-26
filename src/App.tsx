@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, ChevronLeft, ChevronRight, Copy, Trash2, Moon, Sun, Languages } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight, Copy, Trash2, Moon, Sun, Languages, HelpCircle, X } from 'lucide-react';
 
 interface Task {
   id: string;
@@ -21,8 +21,10 @@ function App() {
 
   const [isRTL, setIsRTL] = useState(() => {
     const saved = localStorage.getItem('direction');
-    return saved === 'rtl';
+    return saved !== 'ltr'; // Default to RTL unless explicitly set to LTR
   });
+
+  const [showInstructions, setShowInstructions] = useState(false);
 
   const [columns, setColumns] = useState<Column[]>([
     {
@@ -329,6 +331,17 @@ function App() {
           </div>
           <div className="flex items-center gap-2">
             <button
+              onClick={() => setShowInstructions(!showInstructions)}
+              className={`p-2 rounded-lg transition-colors duration-150 ${
+                isDark 
+                  ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200' 
+                  : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
+              }`}
+              title="How to use"
+            >
+              <HelpCircle size={20} />
+            </button>
+            <button
               onClick={toggleTheme}
               className={`p-2 rounded-lg transition-colors duration-150 ${
                 isDark 
@@ -354,6 +367,47 @@ function App() {
         </div>
       </div>
 
+      {/* Instructions Popover */}
+      {showInstructions && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-lg shadow-xl p-6 max-w-md w-full border relative`}>
+            <button
+              onClick={() => setShowInstructions(false)}
+              className={`absolute top-4 ${isRTL ? 'left-4' : 'right-4'} p-1 rounded-lg ${isDark ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200' : 'hover:bg-gray-100 text-gray-500 hover:text-gray-700'} transition-colors duration-150`}
+            >
+              <X size={20} />
+            </button>
+            <h4 className={`font-medium mb-4 ${isDark ? 'text-gray-100' : 'text-gray-900'} text-lg`}>How to use:</h4>
+            <ul className={`text-sm space-y-3 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+              <li className="flex items-start gap-3">
+                <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></span>
+                <span>Type tasks in any column (each line becomes one task)</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></span>
+                <span>Click + buttons to add columns to the left or right</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></span>
+                <span>Hover over tasks to see move and delete buttons</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></span>
+                <span>Use Ctrl+Enter to quickly add tasks</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></span>
+                <span>Copy button copies all column tasks to clipboard</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></span>
+                <span>Delete button removes column (tasks copied first)</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      )}
+
       {/* Main Content */}
       <div className="p-6 overflow-x-auto">
         <div className="flex gap-6 pb-6" style={{ minWidth: 'max-content' }}>
@@ -361,17 +415,6 @@ function App() {
             <TaskColumn key={column.id} column={column} index={index} />
           ))}
         </div>
-      </div>
-
-      {/* Instructions */}
-      <div className={`fixed bottom-4 ${isRTL ? 'left-4' : 'right-4'} ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-lg shadow-lg p-4 max-w-sm border`}>
-        <h4 className={`font-medium mb-2 ${isDark ? 'text-gray-100' : 'text-gray-900'}`}>How to use:</h4>
-        <ul className={`text-xs space-y-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          <li>• Type tasks in any column (each line = one task)</li>
-          <li>• Click + buttons to add columns</li>
-          <li>• Hover over tasks to see move/delete buttons</li>
-          <li>• Use Ctrl+Enter to quickly add tasks</li>
-        </ul>
       </div>
     </div>
   );
