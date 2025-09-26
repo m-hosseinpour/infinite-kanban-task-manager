@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight, Copy, Trash2 } from 'lucide-react';
 
 interface Task {
   id: string;
@@ -118,6 +118,30 @@ function App() {
     );
   };
 
+  const copyColumnTasks = async (columnId: string) => {
+    const column = columns.find(col => col.id === columnId);
+    if (!column || column.tasks.length === 0) return;
+    
+    const tasksText = column.tasks.map(task => task.text).join('\n');
+    
+    try {
+      await navigator.clipboard.writeText(tasksText);
+    } catch (err) {
+      console.error('Failed to copy tasks:', err);
+    }
+  };
+
+  const deleteColumn = async (columnId: string) => {
+    // Don't delete if it's the last column
+    if (columns.length === 1) return;
+    
+    // First copy tasks to clipboard if any exist
+    await copyColumnTasks(columnId);
+    
+    // Then remove the column
+    setColumns(prev => prev.filter(col => col.id !== columnId));
+  };
+
   const TaskItem = ({ task, columnId, canMoveLeft, canMoveRight }: {
     task: Task;
     columnId: string;
@@ -186,9 +210,29 @@ function App() {
             <Plus size={18} />
           </button>
           
-          <h3 className="text-sm font-medium text-gray-600">
-            Column {index + 1}
-          </h3>
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-medium text-gray-600">
+              Column {index + 1}
+            </h3>
+            {column.tasks.length > 0 && (
+              <button
+                onClick={() => copyColumnTasks(column.id)}
+                className="p-1.5 rounded-lg hover:bg-gray-200 transition-colors duration-150 text-gray-500 hover:text-gray-700"
+                title="Copy all tasks to clipboard"
+              >
+                <Copy size={14} />
+              </button>
+            )}
+            {columns.length > 1 && (
+              <button
+                onClick={() => deleteColumn(column.id)}
+                className="p-1.5 rounded-lg hover:bg-red-100 transition-colors duration-150 text-red-500 hover:text-red-600"
+                title="Delete column (tasks will be copied to clipboard first)"
+              >
+                <Trash2 size={14} />
+              </button>
+            )}
+          </div>
           
           <button
             onClick={() => addColumnRight(column.id)}
