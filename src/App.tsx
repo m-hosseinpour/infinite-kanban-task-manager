@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, ChevronLeft, ChevronRight, Copy, Trash2, Moon, Sun, Globe, HelpCircle, X } from 'lucide-react';
-import { useI18n } from './hooks/useI18n';
+import { Plus, ChevronLeft, ChevronRight, Copy, Trash2, Moon, Sun, Languages, HelpCircle, X } from 'lucide-react';
 
 interface Task {
   id: string;
@@ -13,8 +12,6 @@ interface Column {
 }
 
 function App() {
-  const { t, currentLanguage, changeLanguage, isRTL, availableLanguages } = useI18n();
-  
   // Theme and direction state with localStorage persistence
   const [isDark, setIsDark] = useState(() => {
     const saved = localStorage.getItem('theme');
@@ -22,8 +19,12 @@ function App() {
     return window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
 
+  const [isRTL, setIsRTL] = useState(() => {
+    const saved = localStorage.getItem('direction');
+    return saved !== 'ltr'; // Default to RTL unless explicitly set to LTR
+  });
+
   const [showInstructions, setShowInstructions] = useState(false);
-  const [showLanguageMenu, setShowLanguageMenu] = useState(false);
 
   const [columns, setColumns] = useState<Column[]>([
     {
@@ -39,9 +40,11 @@ function App() {
     localStorage.setItem('theme', newTheme ? 'dark' : 'light');
   };
 
-  const handleLanguageChange = (lang: string) => {
-    changeLanguage(lang);
-    setShowLanguageMenu(false);
+  // Update direction and save to localStorage
+  const toggleDirection = () => {
+    const newDirection = !isRTL;
+    setIsRTL(newDirection);
+    localStorage.setItem('direction', newDirection ? 'rtl' : 'ltr');
   };
 
   const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -181,7 +184,7 @@ function App() {
             <button
               onClick={() => moveTaskLeft(task.id, columnId)}
               className={`p-1 rounded ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} transition-colors duration-150`}
-              title={isRTL ? t.task.moveRight : t.task.moveLeft}
+              title={isRTL ? "Move right" : "Move left"}
             >
               <ChevronLeft size={14} className={`${isDark ? 'text-gray-400' : 'text-gray-500'} ${isRTL ? 'rotate-180' : ''}`} />
             </button>
@@ -190,7 +193,7 @@ function App() {
             <button
               onClick={() => moveTaskRight(task.id, columnId)}
               className={`p-1 rounded ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} transition-colors duration-150`}
-              title={isRTL ? t.task.moveLeft : t.task.moveRight}
+              title={isRTL ? "Move left" : "Move right"}
             >
               <ChevronRight size={14} className={`${isDark ? 'text-gray-400' : 'text-gray-500'} ${isRTL ? 'rotate-180' : ''}`} />
             </button>
@@ -198,7 +201,7 @@ function App() {
           <button
             onClick={() => deleteTask(task.id, columnId)}
             className={`p-1 rounded ${isDark ? 'hover:bg-red-900/30' : 'hover:bg-red-100'} text-red-500 hover:text-red-600 transition-colors duration-150`}
-            title={t.task.deleteTask}
+            title="Delete task"
           >
             ×
           </button>
@@ -230,20 +233,20 @@ function App() {
           <button
             onClick={() => addColumnLeft(column.id)}
             className={`p-2 rounded-lg ${isDark ? 'hover:bg-gray-800 text-gray-400 hover:text-gray-200' : 'hover:bg-gray-200 text-gray-600 hover:text-gray-800'} transition-colors duration-150`}
-            title={isRTL ? t.column.addColumnRight : t.column.addColumnLeft}
+            title={isRTL ? "Add column to the right" : "Add column to the left"}
           >
             <Plus size={18} />
           </button>
           
           <div className="flex items-center gap-2">
             <h3 className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-              {t.column.title} {index + 1}
+              Column {index + 1}
             </h3>
             {column.tasks.length > 0 && (
               <button
                 onClick={() => copyColumnTasks(column.id)}
                 className={`p-1.5 rounded-lg ${isDark ? 'hover:bg-gray-800 text-gray-400 hover:text-gray-200' : 'hover:bg-gray-200 text-gray-500 hover:text-gray-700'} transition-colors duration-150`}
-                title={t.column.copyTasks}
+                title="Copy all tasks to clipboard"
               >
                 <Copy size={14} />
               </button>
@@ -252,7 +255,7 @@ function App() {
               <button
                 onClick={() => deleteColumn(column.id)}
                 className={`p-1.5 rounded-lg ${isDark ? 'hover:bg-red-900/30' : 'hover:bg-red-100'} transition-colors duration-150 text-red-500 hover:text-red-600`}
-                title={t.column.deleteColumn}
+                title="Delete column (tasks will be copied to clipboard first)"
               >
                 <Trash2 size={14} />
               </button>
@@ -262,7 +265,7 @@ function App() {
           <button
             onClick={() => addColumnRight(column.id)}
             className={`p-2 rounded-lg ${isDark ? 'hover:bg-gray-800 text-gray-400 hover:text-gray-200' : 'hover:bg-gray-200 text-gray-600 hover:text-gray-800'} transition-colors duration-150`}
-            title={isRTL ? t.column.addColumnLeft : t.column.addColumnRight}
+            title={isRTL ? "Add column to the left" : "Add column to the right"}
           >
             <Plus size={18} />
           </button>
@@ -274,7 +277,7 @@ function App() {
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             onKeyDown={handleKeyPress}
-            placeholder={t.column.placeholder}
+            placeholder="Type or paste tasks here... (each line becomes a task)"
             className={`w-full h-24 p-3 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${
               isDark 
                 ? 'bg-gray-800 border-gray-600 text-gray-200 placeholder-gray-400' 
@@ -289,7 +292,7 @@ function App() {
                 : 'bg-blue-600 hover:bg-blue-700 text-white'
             }`}
           >
-            {t.column.addTasks}
+            Add Tasks (Ctrl+Enter)
           </button>
         </div>
 
@@ -297,7 +300,7 @@ function App() {
         <div className="space-y-2 max-h-96 overflow-y-auto">
           {column.tasks.length === 0 ? (
             <div className={`text-center py-8 text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-              {t.column.noTasks}
+              No tasks yet. Add some tasks above!
             </div>
           ) : (
             column.tasks.map((task) => (
@@ -321,9 +324,9 @@ function App() {
       <div className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b px-6 py-4`}>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className={`text-2xl font-bold ${isDark ? 'text-gray-100' : 'text-gray-900'}`}>{t.header.title}</h1>
+            <h1 className={`text-2xl font-bold ${isDark ? 'text-gray-100' : 'text-gray-900'}`}>Task Management</h1>
             <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-              {t.header.subtitle}
+              Add columns dynamically and move tasks between them
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -334,7 +337,7 @@ function App() {
                   ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200' 
                   : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
               }`}
-              title={t.header.howToUse}
+              title="How to use"
             >
               <HelpCircle size={20} />
             </button>
@@ -345,40 +348,21 @@ function App() {
                   ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200' 
                   : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
               }`}
-              title={isDark ? t.header.switchToLight : t.header.switchToDark}
+              title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
             >
               {isDark ? <Sun size={20} /> : <Moon size={20} />}
             </button>
-            <div className="relative">
-              <button
-                onClick={() => setShowLanguageMenu(!showLanguageMenu)}
-                className={`p-2 rounded-lg transition-colors duration-150 ${
-                  isDark 
-                    ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200' 
-                    : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
-                }`}
-                title={t.languages[currentLanguage as keyof typeof t.languages]}
-              >
-                <Globe size={20} />
-              </button>
-              {showLanguageMenu && (
-                <div className={`absolute top-full ${isRTL ? 'left-0' : 'right-0'} mt-2 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg shadow-lg py-2 z-50 min-w-32`}>
-                  {availableLanguages.map((lang) => (
-                    <button
-                      key={lang}
-                      onClick={() => handleLanguageChange(lang)}
-                      className={`w-full px-4 py-2 text-sm text-${isRTL ? 'right' : 'left'} ${
-                        currentLanguage === lang
-                          ? isDark ? 'bg-gray-700 text-gray-100' : 'bg-gray-100 text-gray-900'
-                          : isDark ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-100'
-                      } transition-colors duration-150`}
-                    >
-                      {t.languages[lang as keyof typeof t.languages]}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            <button
+              onClick={toggleDirection}
+              className={`p-2 rounded-lg transition-colors duration-150 ${
+                isDark 
+                  ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200' 
+                  : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
+              }`}
+              title={isRTL ? 'Switch to LTR' : 'Switch to RTL'}
+            >
+              <Languages size={20} />
+            </button>
           </div>
         </div>
       </div>
@@ -393,14 +377,32 @@ function App() {
             >
               <X size={20} />
             </button>
-            <h4 className={`font-medium mb-4 ${isDark ? 'text-gray-100' : 'text-gray-900'} text-lg`}>{t.instructions.title}</h4>
+            <h4 className={`font-medium mb-4 ${isDark ? 'text-gray-100' : 'text-gray-900'} text-lg`}>How to use:</h4>
             <ul className={`text-sm space-y-3 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-              {t.instructions.items.map((item, index) => (
-                <li key={index} className="flex items-start gap-3">
-                  <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></span>
-                  <span>{item}</span>
-                </li>
-              ))}
+              <li className="flex items-start gap-3">
+                <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></span>
+                <span>Type tasks in any column (each line becomes one task)</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></span>
+                <span>Click + buttons to add columns to the left or right</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></span>
+                <span>Hover over tasks to see move and delete buttons</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></span>
+                <span>Use Ctrl+Enter to quickly add tasks</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></span>
+                <span>Copy button copies all column tasks to clipboard</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></span>
+                <span>Delete button removes column (tasks copied first)</span>
+              </li>
             </ul>
           </div>
         </div>
@@ -408,13 +410,6 @@ function App() {
 
       {/* Main Content */}
       <div className="p-6 overflow-x-auto">
-        {/* Click outside to close language menu */}
-        {showLanguageMenu && (
-          <div 
-            className="fixed inset-0 z-40" 
-            onClick={() => setShowLanguageMenu(false)}
-          />
-        )}
         <div className="flex gap-6 pb-6" style={{ minWidth: 'max-content' }}>
           {columns.map((column, index) => (
             <TaskColumn key={column.id} column={column} index={index} />
