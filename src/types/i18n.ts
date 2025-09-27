@@ -5,6 +5,8 @@ export interface Translations {
     howToUse: string;
     switchToLight: string;
     switchToDark: string;
+    exportData: string;
+    importData: string;
   };
   column: {
     title: string;
@@ -29,5 +31,11 @@ export interface Translations {
   languages: {
     en: string;
     fa: string;
+  };
+  notifications: {
+    exportSuccess: string;
+    importSuccess: string;
+    importError: string;
+    noDataToExport: string;
   };
 }

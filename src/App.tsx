@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, ChevronLeft, ChevronRight, Copy, Trash2, Moon, Sun, Globe, HelpCircle, X } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight, Copy, Trash2, Moon, Sun, Globe, HelpCircle, X, Download, Upload } from 'lucide-react';
 import { useI18n } from './hooks/useI18n';
 
 interface Task {
@@ -10,6 +10,18 @@ interface Task {
 interface Column {
   id: string;
   tasks: Task[];
+}
+
+interface ExportData {
+  version: string;
+  exportDate: string;
+  columns: Column[];
+}
+
+interface Notification {
+  id: string;
+  message: string;
+  type: 'success' | 'error';
 }
 
 function App() {
@@ -24,6 +36,7 @@ function App() {
 
   const [showInstructions, setShowInstructions] = useState(false);
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
 
   const [columns, setColumns] = useState<Column[]>([
     {
@@ -42,6 +55,89 @@ function App() {
   const handleLanguageChange = (lang: string) => {
     changeLanguage(lang);
     setShowLanguageMenu(false);
+  };
+
+  const showNotification = (message: string, type: 'success' | 'error') => {
+    const id = generateId();
+    const notification: Notification = { id, message, type };
+    setNotifications(prev => [...prev, notification]);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+      setNotifications(prev => prev.filter(n => n.id !== id));
+    }, 3000);
+  };
+
+  const exportData = () => {
+    // Check if there's any data to export
+    const hasData = columns.length > 1 || columns.some(col => col.tasks.length > 0);
+    if (!hasData) {
+      showNotification(t.notifications.noDataToExport, 'error');
+      return;
+    }
+
+    const exportData: ExportData = {
+      version: '1.0',
+      exportDate: new Date().toISOString(),
+      columns: columns
+    };
+
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `kanban-tasks-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    showNotification(t.notifications.exportSuccess, 'success');
+  };
+
+  const importData = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const content = e.target?.result as string;
+        const importedData: ExportData = JSON.parse(content);
+        
+        // Validate the imported data structure
+        if (!importedData.columns || !Array.isArray(importedData.columns)) {
+          throw new Error('Invalid data format');
+        }
+        
+        // Validate each column
+        for (const column of importedData.columns) {
+          if (!column.id || !Array.isArray(column.tasks)) {
+            throw new Error('Invalid column format');
+          }
+          
+          // Validate each task
+          for (const task of column.tasks) {
+            if (!task.id || typeof task.text !== 'string') {
+              throw new Error('Invalid task format');
+            }
+          }
+        }
+        
+        // If validation passes, update the columns
+        setColumns(importedData.columns);
+        showNotification(t.notifications.importSuccess, 'success');
+        
+      } catch (error) {
+        showNotification(t.notifications.importError, 'error');
+      }
+    };
+    
+    reader.readAsText(file);
+    // Reset the input value so the same file can be imported again
+    event.target.value = '';
   };
 
   const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -339,6 +435,32 @@ function App() {
               <HelpCircle size={20} />
             </button>
             <button
+              onClick={exportData}
+              className={`p-2 rounded-lg transition-colors duration-150 ${
+                isDark 
+                  ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200' 
+                  : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
+              }`}
+              title={t.header.exportData}
+            >
+              <Download size={20} />
+            </button>
+            <label className={`p-2 rounded-lg transition-colors duration-150 cursor-pointer ${
+              isDark 
+                ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200' 
+                : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
+            }`}
+            title={t.header.importData}
+            >
+              <Upload size={20} />
+              <input
+                type="file"
+                accept=".json"
+                onChange={importData}
+                className="hidden"
+              />
+            </label>
+            <button
               onClick={toggleTheme}
               className={`p-2 rounded-lg transition-colors duration-150 ${
                 isDark 
@@ -381,6 +503,22 @@ function App() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Notifications */}
+      <div className="fixed top-4 right-4 z-50 space-y-2">
+        {notifications.map((notification) => (
+          <div
+            key={notification.id}
+            className={`px-4 py-2 rounded-lg shadow-lg transition-all duration-300 ${
+              notification.type === 'success'
+                ? isDark ? 'bg-green-800 text-green-100' : 'bg-green-100 text-green-800'
+                : isDark ? 'bg-red-800 text-red-100' : 'bg-red-100 text-red-800'
+            }`}
+          >
+            {notification.message}
+          </div>
+        ))}
       </div>
 
       {/* Instructions Popover */}

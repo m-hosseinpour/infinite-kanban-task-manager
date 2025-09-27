@@ -8,6 +8,8 @@ export const translations: Record<string, Translations> = {
       howToUse: 'How to use',
       switchToLight: 'Switch to light mode',
       switchToDark: 'Switch to dark mode',
+      exportData: 'Export all data',
+      importData: 'Import data',
     },
     column: {
       title: 'Column',
@@ -34,11 +36,19 @@ export const translations: Record<string, Translations> = {
         'Use Ctrl+Enter to quickly add tasks',
         'Copy button copies all column tasks to clipboard',
         'Delete button removes column (tasks copied first)',
+        'Export button downloads all your data as a JSON file',
+        'Import button loads data from a previously exported file',
       ],
     },
     languages: {
       en: 'English',
       fa: 'فارسی',
+    },
+    notifications: {
+      exportSuccess: 'Data exported successfully!',
+      importSuccess: 'Data imported successfully!',
+      importError: 'Error importing data. Please check the file format.',
+      noDataToExport: 'No data to export. Add some tasks first.',
     },
   },
   fa: {
@@ -48,6 +58,8 @@ export const translations: Record<string, Translations> = {
       howToUse: 'نحوه استفاده',
       switchToLight: 'تغییر به حالت روشن',
       switchToDark: 'تغییر به حالت تاریک',
+      exportData: 'خروجی گرفتن از همه داده‌ها',
+      importData: 'وارد کردن داده‌ها',
     },
     column: {
       title: 'ستون',
@@ -74,11 +86,19 @@ export const translations: Record<string, Translations> = {
         'از Ctrl+Enter برای افزودن سریع وظایف استفاده کنید',
         'دکمه کپی همه وظایف ستون را در کلیپ‌بورد کپی می‌کند',
         'دکمه حذف ستون را حذف می‌کند (ابتدا وظایف کپی می‌شوند)',
+        'دکمه خروجی همه داده‌های شما را به صورت فایل JSON دانلود می‌کند',
+        'دکمه ورودی داده‌ها را از فایل قبلاً خروجی گرفته شده بارگذاری می‌کند',
       ],
     },
     languages: {
       en: 'English',
       fa: 'فارسی',
+    },
+    notifications: {
+      exportSuccess: 'داده‌ها با موفقیت خروجی گرفته شد!',
+      importSuccess: 'داده‌ها با موفقیت وارد شد!',
+      importError: 'خطا در وارد کردن داده‌ها. لطفاً فرمت فایل را بررسی کنید.',
+      noDataToExport: 'داده‌ای برای خروجی وجود ندارد. ابتدا وظایفی اضافه کنید.',
     },
   },
 };
