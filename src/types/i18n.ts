@@ -38,4 +38,22 @@ export interface Translations {
     en: string;
     fa: string;
   };
+  auth: {
+    signIn: string;
+    signUp: string;
+    signOut: string;
+    email: string;
+    password: string;
+    emailPlaceholder: string;
+    passwordPlaceholder: string;
+    signInDescription: string;
+    signUpDescription: string;
+    loading: string;
+    alreadyHaveAccount: string;
+    dontHaveAccount: string;
+    saveData: string;
+    autoSave: string;
+    saving: string;
+    loadingData: string;
+  };
 }
