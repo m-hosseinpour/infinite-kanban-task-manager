@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
-import { Plus, ChevronLeft, ChevronRight, Copy, Trash2, Moon, Sun, Globe, HelpCircle, X, Download, Upload } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight, Copy, Trash2, Moon, Sun, Globe, HelpCircle, X, Download, Upload, User, Save } from 'lucide-react';
 import { useI18n } from './hooks/useI18n';
+import { useAuth } from './hooks/useAuth';
+import { useUserData } from './hooks/useUserData';
+import { AuthModal } from './components/AuthModal';
 
 interface Task {
   id: string;
@@ -20,6 +23,8 @@ interface ExportData {
 
 function App() {
   const { t, currentLanguage, changeLanguage, isRTL, availableLanguages } = useI18n();
+  const { user, loading: authLoading, signOut } = useAuth();
+  const { columns, setColumns, loading: dataLoading, saving, saveUserData } = useUserData(user);
   
   // Theme and direction state with localStorage persistence
   const [isDark, setIsDark] = useState(() => {
@@ -30,14 +35,8 @@ function App() {
 
   const [showInstructions, setShowInstructions] = useState(false);
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
-
-  const [columns, setColumns] = useState<Column[]>([
-    {
-      id: 'initial-column',
-      tasks: []
-    }
-  ]);
 
   // Update theme and save to localStorage
   const toggleTheme = () => {
@@ -68,6 +67,7 @@ function App() {
     setColumns(prev => {
       const newColumns = [...prev];
       newColumns.splice(columnIndex, 0, newColumn);
+      if (user) saveUserData(newColumns);
       return newColumns;
     });
   };
@@ -82,6 +82,7 @@ function App() {
     setColumns(prev => {
       const newColumns = [...prev];
       newColumns.splice(columnIndex + 1, 0, newColumn);
+      if (user) saveUserData(newColumns);
       return newColumns;
     });
   };
@@ -95,13 +96,15 @@ function App() {
       text: line.trim()
     }));
 
-    setColumns(prev => 
-      prev.map(col => 
+    setColumns(prev => {
+      const newColumns = prev.map(col => 
         col.id === columnId 
           ? { ...col, tasks: [...col.tasks, ...newTasks] }
           : col
-      )
-    );
+      );
+      if (user) saveUserData(newColumns);
+      return newColumns;
+    });
   };
 
   const moveTaskLeft = (taskId: string, currentColumnId: string) => {
@@ -141,18 +144,21 @@ function App() {
         tasks: [...newColumns[toColumnIndex].tasks, task]
       };
       
+      if (user) saveUserData(newColumns);
       return newColumns;
     });
   };
 
   const deleteTask = (taskId: string, columnId: string) => {
-    setColumns(prev => 
-      prev.map(col => 
+    setColumns(prev => {
+      const newColumns = prev.map(col => 
         col.id === columnId 
           ? { ...col, tasks: col.tasks.filter(task => task.id !== taskId) }
           : col
-      )
-    );
+      );
+      if (user) saveUserData(newColumns);
+      return newColumns;
+    });
   };
 
   const copyColumnTasks = async (columnId: string) => {
@@ -176,7 +182,11 @@ function App() {
     await copyColumnTasks(columnId);
     
     // Then remove the column
-    setColumns(prev => prev.filter(col => col.id !== columnId));
+    setColumns(prev => {
+      const newColumns = prev.filter(col => col.id !== columnId);
+      if (user) saveUserData(newColumns);
+      return newColumns;
+    });
   };
 
   const exportData = () => {
@@ -243,6 +253,7 @@ function App() {
           
           // If validation passes, update the columns
           setColumns(importedData.columns);
+          if (user) saveUserData(importedData.columns);
           showNotification(t.importExport.importSuccess, 'success');
           
         } catch (error) {
@@ -256,6 +267,32 @@ function App() {
     
     input.click();
   };
+
+  const handleSignOut = async () => {
+    await signOut();
+    setShowLanguageMenu(false);
+  };
+
+  const handleManualSave = async () => {
+    if (user && columns) {
+      const success = await saveUserData(columns);
+      if (success) {
+        showNotification(t.auth.saveData + ' ✓', 'success');
+      }
+    }
+  };
+
+  // Show loading screen while checking auth
+  if (authLoading) {
+    return (
+      <div className={`min-h-screen ${isDark ? 'bg-gray-900' : 'bg-gray-100'} flex items-center justify-center`}>
+        <div className={`text-center ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p>{t.auth.loading}</p>
+        </div>
+      </div>
+    );
+  }
 
   const TaskItem = ({ task, columnId, canMoveLeft, canMoveRight }: {
     task: Task;
@@ -420,36 +457,67 @@ function App() {
 
       {/* Header */}
       <div className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b px-6 py-4`}>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
-            <h1 className={`text-2xl font-bold ${isDark ? 'text-gray-100' : 'text-gray-900'}`}>{t.header.title}</h1>
+            <div className="flex items-center gap-3">
+              <h1 className={`text-xl md:text-2xl font-bold ${isDark ? 'text-gray-100' : 'text-gray-900'}`}>{t.header.title}</h1>
+              {user && (
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${saving ? 'bg-yellow-500 animate-pulse' : 'bg-green-500'}`}></div>
+                  <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                    {saving ? t.auth.saving : t.auth.autoSave}
+                  </span>
+                </div>
+              )}
+            </div>
             <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
               {t.header.subtitle}
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={exportData}
-              className={`p-2 rounded-lg transition-colors duration-150 ${
-                isDark 
-                  ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200' 
-                  : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
-              }`}
-              title={t.importExport.export}
-            >
-              <Download size={20} />
-            </button>
-            <button
-              onClick={importData}
-              className={`p-2 rounded-lg transition-colors duration-150 ${
-                isDark 
-                  ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200' 
-                  : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
-              }`}
-              title={t.importExport.import}
-            >
-              <Upload size={20} />
-            </button>
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Import/Export Group */}
+            <div className={`flex items-center gap-1 px-2 py-1 rounded-lg border ${isDark ? 'border-gray-600' : 'border-gray-300'}`}>
+              {user && (
+                <button
+                  onClick={handleManualSave}
+                  disabled={saving}
+                  className={`p-2 rounded-lg transition-colors duration-150 ${
+                    saving
+                      ? isDark ? 'text-gray-600' : 'text-gray-400'
+                      : isDark 
+                        ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200' 
+                        : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
+                  }`}
+                  title={t.auth.saveData}
+                >
+                  <Save size={18} />
+                </button>
+              )}
+              <button
+                onClick={exportData}
+                className={`p-2 rounded-lg transition-colors duration-150 ${
+                  isDark 
+                    ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200' 
+                    : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
+                }`}
+                title={t.importExport.export}
+              >
+                <Download size={18} />
+              </button>
+              <button
+                onClick={importData}
+                className={`p-2 rounded-lg transition-colors duration-150 ${
+                  isDark 
+                    ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200' 
+                    : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
+                }`}
+                title={t.importExport.import}
+              >
+                <Upload size={18} />
+              </button>
+            </div>
+            
+            {/* App Controls Group */}
             <button
               onClick={() => setShowInstructions(!showInstructions)}
               className={`p-2 rounded-lg transition-colors duration-150 ${
@@ -459,7 +527,7 @@ function App() {
               }`}
               title={t.header.howToUse}
             >
-              <HelpCircle size={20} />
+              <HelpCircle size={18} />
             </button>
             <button
               onClick={toggleTheme}
@@ -470,8 +538,31 @@ function App() {
               }`}
               title={isDark ? t.header.switchToLight : t.header.switchToDark}
             >
-              {isDark ? <Sun size={20} /> : <Moon size={20} />}
+              {isDark ? <Sun size={18} /> : <Moon size={18} />}
             </button>
+            
+            {/* Auth Button */}
+            {user ? (
+              <button
+                onClick={handleSignOut}
+                className={`p-2 rounded-lg transition-colors duration-150 ${
+                  isDark 
+                    ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200' 
+                    : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
+                }`}
+                title={t.auth.signOut}
+              >
+                <User size={18} />
+              </button>
+            ) : (
+              <button
+                onClick={() => setShowAuthModal(true)}
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-150 bg-blue-600 hover:bg-blue-700 text-white`}
+              >
+                {t.auth.signIn}
+              </button>
+            )}
+            
             <div className="relative">
               <button
                 onClick={() => setShowLanguageMenu(!showLanguageMenu)}
@@ -506,6 +597,13 @@ function App() {
         </div>
       </div>
 
+      {/* Auth Modal */}
+      <AuthModal 
+        isOpen={showAuthModal} 
+        onClose={() => setShowAuthModal(false)} 
+        isDark={isDark}
+      />
+
       {/* Instructions Popover */}
       {showInstructions && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -531,6 +629,18 @@ function App() {
 
       {/* Main Content */}
       <div className="p-6 overflow-x-auto">
+        {/* Loading overlay for data */}
+        {dataLoading && user && (
+          <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-40">
+            <div className={`${isDark ? 'bg-gray-800 text-gray-200' : 'bg-white text-gray-800'} rounded-lg p-6 shadow-xl`}>
+              <div className="flex items-center gap-3">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+                <span>{t.auth.loadingData}</span>
+              </div>
+            </div>
+          </div>
+        )}
+        
         {/* Click outside to close language menu */}
         {showLanguageMenu && (
           <div 
