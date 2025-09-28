@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, ChevronLeft, ChevronRight, Copy, Trash2, Moon, Sun, Globe, HelpCircle, X, Download, Upload, User, Save } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight, Copy, Trash2, Moon, Sun, Globe, HelpCircle, X, Download, Upload, LogOut, Save } from 'lucide-react';
 import { useI18n } from './hooks/useI18n';
 import { useAuth } from './hooks/useAuth';
 import { useUserData } from './hooks/useUserData';
@@ -25,7 +25,7 @@ function App() {
   const { t, currentLanguage, changeLanguage, isRTL, availableLanguages } = useI18n();
   const { user, loading: authLoading, signOut } = useAuth();
   const { columns, setColumns, loading: dataLoading, saving, saveUserData } = useUserData(user);
-  
+
   // Theme and direction state with localStorage persistence
   const [isDark, setIsDark] = useState(() => {
     const saved = localStorage.getItem('theme');
@@ -55,7 +55,7 @@ function App() {
     setTimeout(() => setNotification(null), 3000);
   };
 
-  const generateId = () => Math.random().toString(36).substr(2, 9);
+  const generateId = () => Math.random().toString(36).substring(2, 11);
 
   const addColumnLeft = (columnId: string) => {
     const columnIndex = columns.findIndex(col => col.id === columnId);
@@ -63,7 +63,7 @@ function App() {
       id: generateId(),
       tasks: []
     };
-    
+
     setColumns(prev => {
       const newColumns = [...prev];
       newColumns.splice(columnIndex, 0, newColumn);
@@ -78,7 +78,7 @@ function App() {
       id: generateId(),
       tasks: []
     };
-    
+
     setColumns(prev => {
       const newColumns = [...prev];
       newColumns.splice(columnIndex + 1, 0, newColumn);
@@ -89,7 +89,7 @@ function App() {
 
   const addTasksToColumn = (columnId: string, text: string) => {
     if (!text.trim()) return;
-    
+
     const lines = text.split('\n').filter(line => line.trim());
     const newTasks = lines.map(line => ({
       id: generateId(),
@@ -97,8 +97,8 @@ function App() {
     }));
 
     setColumns(prev => {
-      const newColumns = prev.map(col => 
-        col.id === columnId 
+      const newColumns = prev.map(col =>
+        col.id === columnId
           ? { ...col, tasks: [...col.tasks, ...newTasks] }
           : col
       );
@@ -110,7 +110,7 @@ function App() {
   const moveTaskLeft = (taskId: string, currentColumnId: string) => {
     const currentColumnIndex = columns.findIndex(col => col.id === currentColumnId);
     if (currentColumnIndex === 0) return; // Already at leftmost column
-    
+
     const targetColumnId = columns[currentColumnIndex - 1].id;
     moveTask(taskId, currentColumnId, targetColumnId);
   };
@@ -118,7 +118,7 @@ function App() {
   const moveTaskRight = (taskId: string, currentColumnId: string) => {
     const currentColumnIndex = columns.findIndex(col => col.id === currentColumnId);
     if (currentColumnIndex === columns.length - 1) return; // Already at rightmost column
-    
+
     const targetColumnId = columns[currentColumnIndex + 1].id;
     moveTask(taskId, currentColumnId, targetColumnId);
   };
@@ -126,24 +126,24 @@ function App() {
   const moveTask = (taskId: string, fromColumnId: string, toColumnId: string) => {
     setColumns(prev => {
       const newColumns = [...prev];
-      
+
       // Find the task and remove it from the source column
       const fromColumnIndex = newColumns.findIndex(col => col.id === fromColumnId);
       const taskIndex = newColumns[fromColumnIndex].tasks.findIndex(task => task.id === taskId);
       const task = newColumns[fromColumnIndex].tasks[taskIndex];
-      
+
       newColumns[fromColumnIndex] = {
         ...newColumns[fromColumnIndex],
         tasks: newColumns[fromColumnIndex].tasks.filter(t => t.id !== taskId)
       };
-      
+
       // Add the task to the target column
       const toColumnIndex = newColumns.findIndex(col => col.id === toColumnId);
       newColumns[toColumnIndex] = {
         ...newColumns[toColumnIndex],
         tasks: [...newColumns[toColumnIndex].tasks, task]
       };
-      
+
       if (user) saveUserData(newColumns);
       return newColumns;
     });
@@ -151,8 +151,8 @@ function App() {
 
   const deleteTask = (taskId: string, columnId: string) => {
     setColumns(prev => {
-      const newColumns = prev.map(col => 
-        col.id === columnId 
+      const newColumns = prev.map(col =>
+        col.id === columnId
           ? { ...col, tasks: col.tasks.filter(task => task.id !== taskId) }
           : col
       );
@@ -164,9 +164,9 @@ function App() {
   const copyColumnTasks = async (columnId: string) => {
     const column = columns.find(col => col.id === columnId);
     if (!column || column.tasks.length === 0) return;
-    
+
     const tasksText = column.tasks.map(task => task.text).join('\n');
-    
+
     try {
       await navigator.clipboard.writeText(tasksText);
     } catch (err) {
@@ -177,10 +177,10 @@ function App() {
   const deleteColumn = async (columnId: string) => {
     // Don't delete if it's the last column
     if (columns.length === 1) return;
-    
+
     // First copy tasks to clipboard if any exist
     await copyColumnTasks(columnId);
-    
+
     // Then remove the column
     setColumns(prev => {
       const newColumns = prev.filter(col => col.id !== columnId);
@@ -192,7 +192,7 @@ function App() {
   const exportData = () => {
     // Check if there's any data to export
     const hasData = columns.some(col => col.tasks.length > 0) || columns.length > 1;
-    
+
     if (!hasData) {
       showNotification(t.importExport.noDataToExport, 'error');
       return;
@@ -206,14 +206,14 @@ function App() {
 
     const dataStr = JSON.stringify(exportData, null, 2);
     const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    
+
     const link = document.createElement('a');
     link.href = URL.createObjectURL(dataBlob);
     link.download = `kanban-tasks-${new Date().toISOString().split('T')[0]}.json`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+
     showNotification(t.importExport.exportSuccess, 'success');
   };
 
@@ -221,28 +221,28 @@ function App() {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.json';
-    
+
     input.onchange = (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (!file) return;
-      
+
       const reader = new FileReader();
       reader.onload = (e) => {
         try {
           const content = e.target?.result as string;
           const importedData: ExportData = JSON.parse(content);
-          
+
           // Validate the imported data structure
           if (!importedData.columns || !Array.isArray(importedData.columns)) {
             throw new Error('Invalid data format');
           }
-          
+
           // Validate each column has the required structure
           for (const column of importedData.columns) {
             if (!column.id || !Array.isArray(column.tasks)) {
               throw new Error('Invalid column format');
             }
-            
+
             // Validate each task has the required structure
             for (const task of column.tasks) {
               if (!task.id || typeof task.text !== 'string') {
@@ -250,21 +250,21 @@ function App() {
               }
             }
           }
-          
+
           // If validation passes, update the columns
           setColumns(importedData.columns);
           if (user) saveUserData(importedData.columns);
           showNotification(t.importExport.importSuccess, 'success');
-          
+
         } catch (error) {
           console.error('Import error:', error);
           showNotification(t.importExport.importError, 'error');
         }
       };
-      
+
       reader.readAsText(file);
     };
-    
+
     input.click();
   };
 
@@ -361,7 +361,7 @@ function App() {
           >
             <Plus size={18} />
           </button>
-          
+
           <div className="flex items-center gap-2">
             <h3 className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
               {t.column.title} {index + 1}
@@ -385,7 +385,7 @@ function App() {
               </button>
             )}
           </div>
-          
+
           <button
             onClick={() => addColumnRight(column.id)}
             className={`p-2 rounded-lg ${isDark ? 'hover:bg-gray-800 text-gray-400 hover:text-gray-200' : 'hover:bg-gray-200 text-gray-600 hover:text-gray-800'} transition-colors duration-150`}
@@ -403,8 +403,8 @@ function App() {
             onKeyDown={handleKeyPress}
             placeholder={t.column.placeholder}
             className={`w-full h-24 p-3 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${
-              isDark 
-                ? 'bg-gray-800 border-gray-600 text-gray-200 placeholder-gray-400' 
+              isDark
+                ? 'bg-gray-800 border-gray-600 text-gray-200 placeholder-gray-400'
                 : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
             }`}
           />
@@ -484,8 +484,8 @@ function App() {
                   className={`p-2 rounded-lg transition-colors duration-150 ${
                     saving
                       ? isDark ? 'text-gray-600' : 'text-gray-400'
-                      : isDark 
-                        ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200' 
+                      : isDark
+                        ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200'
                         : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
                   }`}
                   title={t.auth.saveData}
@@ -496,8 +496,8 @@ function App() {
               <button
                 onClick={exportData}
                 className={`p-2 rounded-lg transition-colors duration-150 ${
-                  isDark 
-                    ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200' 
+                  isDark
+                    ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200'
                     : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
                 }`}
                 title={t.importExport.export}
@@ -507,8 +507,8 @@ function App() {
               <button
                 onClick={importData}
                 className={`p-2 rounded-lg transition-colors duration-150 ${
-                  isDark 
-                    ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200' 
+                  isDark
+                    ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200'
                     : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
                 }`}
                 title={t.importExport.import}
@@ -516,13 +516,13 @@ function App() {
                 <Upload size={18} />
               </button>
             </div>
-            
+
             {/* App Controls Group */}
             <button
               onClick={() => setShowInstructions(!showInstructions)}
               className={`p-2 rounded-lg transition-colors duration-150 ${
-                isDark 
-                  ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200' 
+                isDark
+                  ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200'
                   : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
               }`}
               title={t.header.howToUse}
@@ -532,43 +532,21 @@ function App() {
             <button
               onClick={toggleTheme}
               className={`p-2 rounded-lg transition-colors duration-150 ${
-                isDark 
-                  ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200' 
+                isDark
+                  ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200'
                   : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
               }`}
               title={isDark ? t.header.switchToLight : t.header.switchToDark}
             >
               {isDark ? <Sun size={18} /> : <Moon size={18} />}
             </button>
-            
-            {/* Auth Button */}
-            {user ? (
-              <button
-                onClick={handleSignOut}
-                className={`p-2 rounded-lg transition-colors duration-150 ${
-                  isDark 
-                    ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200' 
-                    : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
-                }`}
-                title={t.auth.signOut}
-              >
-                <User size={18} />
-              </button>
-            ) : (
-              <button
-                onClick={() => setShowAuthModal(true)}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-150 bg-blue-600 hover:bg-blue-700 text-white`}
-              >
-                {t.auth.signIn}
-              </button>
-            )}
-            
+
             <div className="relative">
               <button
                 onClick={() => setShowLanguageMenu(!showLanguageMenu)}
                 className={`p-2 rounded-lg transition-colors duration-150 ${
-                  isDark 
-                    ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200' 
+                  isDark
+                    ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200'
                     : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
                 }`}
                 title={t.languages[currentLanguage as keyof typeof t.languages]}
@@ -593,14 +571,36 @@ function App() {
                 </div>
               )}
             </div>
+
+            {/* Auth Button */}
+            {user ? (
+              <button
+                onClick={handleSignOut}
+                className={`p-2 rounded-lg transition-colors duration-150 ${
+                  isDark
+                    ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200'
+                    : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
+                }`}
+                title={t.auth.signOut}
+              >
+                <LogOut size={18} />
+              </button>
+            ) : (
+              <button
+                onClick={() => setShowAuthModal(true)}
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-150 bg-blue-600 hover:bg-blue-700 text-white`}
+              >
+                {t.auth.signIn}
+              </button>
+            )}
           </div>
         </div>
       </div>
 
       {/* Auth Modal */}
-      <AuthModal 
-        isOpen={showAuthModal} 
-        onClose={() => setShowAuthModal(false)} 
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
         isDark={isDark}
       />
 
@@ -640,11 +640,11 @@ function App() {
             </div>
           </div>
         )}
-        
+
         {/* Click outside to close language menu */}
         {showLanguageMenu && (
-          <div 
-            className="fixed inset-0 z-40" 
+          <div
+            className="fixed inset-0 z-40"
             onClick={() => setShowLanguageMenu(false)}
           />
         )}
