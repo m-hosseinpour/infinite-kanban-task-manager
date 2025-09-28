@@ -63,11 +63,16 @@ export const useUserData = (user: User | null) => {
     try {
       const { error } = await supabase
         .from('user_boards')
-        .upsert({
-          user_id: user.id,
-          board_data: columnsData,
-          updated_at: new Date().toISOString()
-        })
+        .upsert(
+          {
+            user_id: user.id,
+            board_data: columnsData,
+            updated_at: new Date().toISOString()
+          },
+          {
+            onConflict: 'user_id'
+          }
+        );
 
       if (error) {
         console.error('Error saving user data:', error)
