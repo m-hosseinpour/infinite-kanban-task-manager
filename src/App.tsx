@@ -18,12 +18,6 @@ interface ExportData {
   columns: Column[];
 }
 
-interface Notification {
-  id: string;
-  message: string;
-  type: 'success' | 'error';
-}
-
 function App() {
   const { t, currentLanguage, changeLanguage, isRTL, availableLanguages } = useI18n();
   
@@ -36,7 +30,7 @@ function App() {
 
   const [showInstructions, setShowInstructions] = useState(false);
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   const [columns, setColumns] = useState<Column[]>([
     {
@@ -58,86 +52,8 @@ function App() {
   };
 
   const showNotification = (message: string, type: 'success' | 'error') => {
-    const id = generateId();
-    const notification: Notification = { id, message, type };
-    setNotifications(prev => [...prev, notification]);
-    
-    // Auto remove after 3 seconds
-    setTimeout(() => {
-      setNotifications(prev => prev.filter(n => n.id !== id));
-    }, 3000);
-  };
-
-  const exportData = () => {
-    // Check if there's any data to export
-    const hasData = columns.length > 1 || columns.some(col => col.tasks.length > 0);
-    if (!hasData) {
-      showNotification(t.notifications.noDataToExport, 'error');
-      return;
-    }
-
-    const exportData: ExportData = {
-      version: '1.0',
-      exportDate: new Date().toISOString(),
-      columns: columns
-    };
-
-    const dataStr = JSON.stringify(exportData, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(dataBlob);
-    
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `kanban-tasks-${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    
-    showNotification(t.notifications.exportSuccess, 'success');
-  };
-
-  const importData = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const content = e.target?.result as string;
-        const importedData: ExportData = JSON.parse(content);
-        
-        // Validate the imported data structure
-        if (!importedData.columns || !Array.isArray(importedData.columns)) {
-          throw new Error('Invalid data format');
-        }
-        
-        // Validate each column
-        for (const column of importedData.columns) {
-          if (!column.id || !Array.isArray(column.tasks)) {
-            throw new Error('Invalid column format');
-          }
-          
-          // Validate each task
-          for (const task of column.tasks) {
-            if (!task.id || typeof task.text !== 'string') {
-              throw new Error('Invalid task format');
-            }
-          }
-        }
-        
-        // If validation passes, update the columns
-        setColumns(importedData.columns);
-        showNotification(t.notifications.importSuccess, 'success');
-        
-      } catch (error) {
-        showNotification(t.notifications.importError, 'error');
-      }
-    };
-    
-    reader.readAsText(file);
-    // Reset the input value so the same file can be imported again
-    event.target.value = '';
+    setNotification({ message, type });
+    setTimeout(() => setNotification(null), 3000);
   };
 
   const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -263,6 +179,84 @@ function App() {
     setColumns(prev => prev.filter(col => col.id !== columnId));
   };
 
+  const exportData = () => {
+    // Check if there's any data to export
+    const hasData = columns.some(col => col.tasks.length > 0) || columns.length > 1;
+    
+    if (!hasData) {
+      showNotification(t.importExport.noDataToExport, 'error');
+      return;
+    }
+
+    const exportData: ExportData = {
+      version: '1.0',
+      exportDate: new Date().toISOString(),
+      columns: columns
+    };
+
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(dataBlob);
+    link.download = `kanban-tasks-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    showNotification(t.importExport.exportSuccess, 'success');
+  };
+
+  const importData = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const content = e.target?.result as string;
+          const importedData: ExportData = JSON.parse(content);
+          
+          // Validate the imported data structure
+          if (!importedData.columns || !Array.isArray(importedData.columns)) {
+            throw new Error('Invalid data format');
+          }
+          
+          // Validate each column has the required structure
+          for (const column of importedData.columns) {
+            if (!column.id || !Array.isArray(column.tasks)) {
+              throw new Error('Invalid column format');
+            }
+            
+            // Validate each task has the required structure
+            for (const task of column.tasks) {
+              if (!task.id || typeof task.text !== 'string') {
+                throw new Error('Invalid task format');
+              }
+            }
+          }
+          
+          // If validation passes, update the columns
+          setColumns(importedData.columns);
+          showNotification(t.importExport.importSuccess, 'success');
+          
+        } catch (error) {
+          console.error('Import error:', error);
+          showNotification(t.importExport.importError, 'error');
+        }
+      };
+      
+      reader.readAsText(file);
+    };
+    
+    input.click();
+  };
+
   const TaskItem = ({ task, columnId, canMoveLeft, canMoveRight }: {
     task: Task;
     columnId: string;
@@ -272,14 +266,14 @@ function App() {
     <div className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-lg border p-3 shadow-sm hover:shadow-md transition-shadow duration-200 group`}>
       <div className="flex items-start justify-between gap-2">
         <span className={`text-sm ${isDark ? 'text-gray-200' : 'text-gray-800'} flex-1 leading-relaxed`}>{task.text}</span>
-        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+        <div className="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200">
           {canMoveLeft && (
             <button
               onClick={() => moveTaskLeft(task.id, columnId)}
               className={`p-1 rounded ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} transition-colors duration-150`}
               title={isRTL ? t.task.moveRight : t.task.moveLeft}
             >
-              <ChevronLeft size={14} className={`${isDark ? 'text-gray-400' : 'text-gray-500'} ${isRTL ? 'rotate-180' : ''}`} />
+              <ChevronLeft size={16} className={`${isDark ? 'text-gray-400' : 'text-gray-500'} ${isRTL ? 'rotate-180' : ''}`} />
             </button>
           )}
           {canMoveRight && (
@@ -288,7 +282,7 @@ function App() {
               className={`p-1 rounded ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} transition-colors duration-150`}
               title={isRTL ? t.task.moveLeft : t.task.moveRight}
             >
-              <ChevronRight size={14} className={`${isDark ? 'text-gray-400' : 'text-gray-500'} ${isRTL ? 'rotate-180' : ''}`} />
+              <ChevronRight size={16} className={`${isDark ? 'text-gray-400' : 'text-gray-500'} ${isRTL ? 'rotate-180' : ''}`} />
             </button>
           )}
           <button
@@ -296,7 +290,7 @@ function App() {
             className={`p-1 rounded ${isDark ? 'hover:bg-red-900/30' : 'hover:bg-red-100'} text-red-500 hover:text-red-600 transition-colors duration-150`}
             title={t.task.deleteTask}
           >
-            ×
+            <span className="text-base">×</span>
           </button>
         </div>
       </div>
@@ -413,6 +407,17 @@ function App() {
 
   return (
     <div className={`min-h-screen ${isDark ? 'bg-gray-900' : 'bg-gray-100'}`} dir={isRTL ? 'rtl' : 'ltr'}>
+      {/* Notification */}
+      {notification && (
+        <div className={`fixed top-4 ${isRTL ? 'left-4' : 'right-4'} z-50 px-4 py-2 rounded-lg shadow-lg transition-all duration-300 ${
+          notification.type === 'success'
+            ? isDark ? 'bg-green-800 text-green-100' : 'bg-green-100 text-green-800'
+            : isDark ? 'bg-red-800 text-red-100' : 'bg-red-100 text-red-800'
+        }`}>
+          {notification.message}
+        </div>
+      )}
+
       {/* Header */}
       <div className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b px-6 py-4`}>
         <div className="flex items-center justify-between">
@@ -424,6 +429,28 @@ function App() {
           </div>
           <div className="flex items-center gap-2">
             <button
+              onClick={exportData}
+              className={`p-2 rounded-lg transition-colors duration-150 ${
+                isDark 
+                  ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200' 
+                  : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
+              }`}
+              title={t.importExport.export}
+            >
+              <Download size={20} />
+            </button>
+            <button
+              onClick={importData}
+              className={`p-2 rounded-lg transition-colors duration-150 ${
+                isDark 
+                  ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200' 
+                  : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
+              }`}
+              title={t.importExport.import}
+            >
+              <Upload size={20} />
+            </button>
+            <button
               onClick={() => setShowInstructions(!showInstructions)}
               className={`p-2 rounded-lg transition-colors duration-150 ${
                 isDark 
@@ -434,32 +461,6 @@ function App() {
             >
               <HelpCircle size={20} />
             </button>
-            <button
-              onClick={exportData}
-              className={`p-2 rounded-lg transition-colors duration-150 ${
-                isDark 
-                  ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200' 
-                  : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
-              }`}
-              title={t.header.exportData}
-            >
-              <Download size={20} />
-            </button>
-            <label className={`p-2 rounded-lg transition-colors duration-150 cursor-pointer ${
-              isDark 
-                ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200' 
-                : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
-            }`}
-            title={t.header.importData}
-            >
-              <Upload size={20} />
-              <input
-                type="file"
-                accept=".json"
-                onChange={importData}
-                className="hidden"
-              />
-            </label>
             <button
               onClick={toggleTheme}
               className={`p-2 rounded-lg transition-colors duration-150 ${
@@ -503,22 +504,6 @@ function App() {
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Notifications */}
-      <div className="fixed top-4 right-4 z-50 space-y-2">
-        {notifications.map((notification) => (
-          <div
-            key={notification.id}
-            className={`px-4 py-2 rounded-lg shadow-lg transition-all duration-300 ${
-              notification.type === 'success'
-                ? isDark ? 'bg-green-800 text-green-100' : 'bg-green-100 text-green-800'
-                : isDark ? 'bg-red-800 text-red-100' : 'bg-red-100 text-red-800'
-            }`}
-          >
-            {notification.message}
-          </div>
-        ))}
       </div>
 
       {/* Instructions Popover */}
