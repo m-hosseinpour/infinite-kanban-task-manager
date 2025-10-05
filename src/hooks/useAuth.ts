@@ -1,28 +1,26 @@
-import { useState, useEffect } from 'react'
+import { createSignal, onCleanup, onMount } from 'solid-js'
 import { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 
-export const useAuth = () => {
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
+export const createAuth = () => {
+  const [user, setUser] = createSignal<User | null>(null)
+  const [loading, setLoading] = createSignal(true)
 
-  useEffect(() => {
-    // Get initial session
+  onMount(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
       setLoading(false)
     })
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         setUser(session?.user ?? null)
         setLoading(false)
       }
     )
 
-    return () => subscription.unsubscribe()
-  }, [])
+    onCleanup(() => subscription.unsubscribe())
+  })
 
   const signUp = async (email: string, password: string) => {
     const { data, error } = await supabase.auth.signUp({

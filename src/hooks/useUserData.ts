@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { createSignal, createEffect, Accessor } from 'solid-js'
 import { supabase } from '../lib/supabase'
 import { User } from '@supabase/supabase-js'
 
@@ -7,41 +7,29 @@ interface Column {
   tasks: { id: string; text: string }[];
 }
 
-export const useUserData = (user: User | null) => {
-  const [columns, setColumns] = useState<Column[]>([
+export const createUserData = (user: Accessor<User | null>) => {
+  const [columns, setColumns] = createSignal<Column[]>([
     {
       id: 'initial-column',
       tasks: []
     }
   ])
-  const [loading, setLoading] = useState(false)
-  const [saving, setSaving] = useState(false)
-
-  // Load user data when user changes
-  useEffect(() => {
-    if (user) {
-      loadUserData()
-    } else {
-      // Reset to default when user logs out
-      setColumns([{
-        id: 'initial-column',
-        tasks: []
-      }])
-    }
-  }, [user])
+  const [loading, setLoading] = createSignal(false)
+  const [saving, setSaving] = createSignal(false)
 
   const loadUserData = async () => {
-    if (!user) return
+    const currentUser = user()
+    if (!currentUser) return
 
     setLoading(true)
     try {
       const { data, error } = await supabase
         .from('user_boards')
         .select('board_data')
-        .eq('user_id', user.id)
-        .single()
+        .eq('user_id', currentUser.id)
+        .maybeSingle()
 
-      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+      if (error && error.code !== 'PGRST116') {
         console.error('Error loading user data:', error)
         return
       }
@@ -56,8 +44,20 @@ export const useUserData = (user: User | null) => {
     }
   }
 
+  createEffect(() => {
+    if (user()) {
+      loadUserData()
+    } else {
+      setColumns([{
+        id: 'initial-column',
+        tasks: []
+      }])
+    }
+  })
+
   const saveUserData = async (columnsData: Column[]) => {
-    if (!user) return
+    const currentUser = user()
+    if (!currentUser) return
 
     setSaving(true)
     try {
@@ -65,7 +65,7 @@ export const useUserData = (user: User | null) => {
         .from('user_boards')
         .upsert(
           {
-            user_id: user.id,
+            user_id: currentUser.id,
             board_data: columnsData,
             updated_at: new Date().toISOString()
           },
