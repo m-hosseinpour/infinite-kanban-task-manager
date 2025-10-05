@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { Plus, ChevronLeft, ChevronRight, Copy, Trash2, Moon, Sun, Globe, HelpCircle, X, Download, Upload, LogOut, Save } from 'lucide-react';
 import { useI18n } from './hooks/useI18n';
 import { useAuth } from './hooks/useAuth';
@@ -25,6 +25,9 @@ function App() {
   const { t, currentLanguage, changeLanguage, isRTL, availableLanguages } = useI18n();
   const { user, loading: authLoading, signOut } = useAuth();
   const { columns, setColumns, loading: dataLoading, saving, saveUserData } = useUserData(user);
+
+  // Store scroll positions for all columns
+  const scrollPositionsRef = useRef<Map<string, number>>(new Map());
 
   // Theme and direction state with localStorage persistence
   const [isDark, setIsDark] = useState(() => {
@@ -294,7 +297,7 @@ function App() {
     );
   }
 
-  const TaskItem = ({ task, columnId, canMoveLeft, canMoveRight }: {
+  const TaskItem = React.memo(({ task, columnId, canMoveLeft, canMoveRight }: {
     task: Task;
     columnId: string;
     canMoveLeft: boolean;
@@ -332,10 +335,34 @@ function App() {
         </div>
       </div>
     </div>
-  );
+  ));
 
-  const TaskColumn = ({ column, index }: { column: Column; index: number }) => {
+  const TaskColumn = ({ column, index, scrollPositionsRef }: { column: Column; index: number; scrollPositionsRef: React.MutableRefObject<Map<string, number>> }) => {
     const [inputText, setInputText] = useState('');
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+    // Save scroll position on every scroll event
+    useEffect(() => {
+      const container = scrollContainerRef.current;
+      if (container) {
+        const handleScroll = () => {
+          scrollPositionsRef.current.set(column.id, container.scrollTop);
+        };
+        container.addEventListener('scroll', handleScroll, { passive: true });
+        return () => container.removeEventListener('scroll', handleScroll);
+      }
+    }, [column.id]);
+
+    // Restore scroll position synchronously before paint using useLayoutEffect
+    useLayoutEffect(() => {
+      const container = scrollContainerRef.current;
+      if (container) {
+        const savedPosition = scrollPositionsRef.current.get(column.id);
+        if (savedPosition !== undefined && savedPosition > 0) {
+          container.scrollTop = savedPosition;
+        }
+      }
+    }, [column.tasks, column.id]);
 
     const handleAddTasks = () => {
       if (inputText.trim()) {
@@ -421,7 +448,7 @@ function App() {
         </div>
 
         {/* Tasks List */}
-        <div className="space-y-2 max-h-96 overflow-y-auto">
+        <div ref={scrollContainerRef} className="space-y-2 max-h-96 overflow-y-auto">
           {column.tasks.length === 0 ? (
             <div className={`text-center py-8 text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
               {t.column.noTasks}
@@ -650,7 +677,7 @@ function App() {
         )}
         <div className="flex gap-6 pb-6" style={{ minWidth: 'max-content' }}>
           {columns.map((column, index) => (
-            <TaskColumn key={column.id} column={column} index={index} />
+            <TaskColumn key={column.id} column={column} index={index} scrollPositionsRef={scrollPositionsRef} />
           ))}
         </div>
       </div>
