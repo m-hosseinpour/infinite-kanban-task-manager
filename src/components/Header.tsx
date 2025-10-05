@@ -46,25 +46,52 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <>
-      <div className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b px-6 py-3`}>
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <h1 className={`text-xl md:text-2xl font-bold ${isDark ? 'text-gray-100' : 'text-gray-900'}`}>{t.header.title}</h1>
-            {user && (
-              <>
-                <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${saving ? 'bg-yellow-500 animate-pulse' : 'bg-green-500'}`}></div>
-                  <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                    {saving ? t.auth.saving : t.auth.autoSave}
+      <div className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b px-4 md:px-6 py-3`}>
+        <div className="flex flex-col gap-3">
+          {/* First Row: Title, Status, Email and Auth Button */}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
+              <h1 className={`text-lg md:text-2xl font-bold ${isDark ? 'text-gray-100' : 'text-gray-900'} truncate`}>{t.header.title}</h1>
+              {user && (
+                <>
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <div className={`w-2 h-2 rounded-full ${saving ? 'bg-yellow-500 animate-pulse' : 'bg-green-500'}`}></div>
+                    <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'} hidden sm:inline`}>
+                      {saving ? t.auth.saving : t.auth.autoSave}
+                    </span>
+                  </div>
+                  <span className={`hidden md:inline text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'} truncate max-w-[200px]`} title={user.email || ''}>
+                    {user.email}
                   </span>
-                </div>
-                <span className={`hidden md:inline text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'} truncate max-w-[200px]`} title={user.email || ''}>
-                  {user.email}
-                </span>
-              </>
+                </>
+              )}
+            </div>
+
+            {/* Auth Button - Always on first row */}
+            {user ? (
+              <button
+                onClick={onSignOut}
+                className={`p-2 rounded-lg transition-colors duration-150 flex-shrink-0 ${
+                  isDark
+                    ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200'
+                    : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
+                }`}
+                title={t.auth.signOut}
+              >
+                <LogOut size={18} />
+              </button>
+            ) : (
+              <button
+                onClick={onShowAuthModal}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors duration-150 bg-blue-600 hover:bg-blue-700 text-white flex-shrink-0`}
+              >
+                {t.auth.signIn}
+              </button>
             )}
           </div>
-          <div className="flex items-center gap-2">
+
+          {/* Second Row: Action Buttons */}
+          <div className="flex items-center justify-between gap-2">
             {/* Import/Export Group */}
             <div className={`flex items-center gap-1 px-2 py-1 rounded-lg border ${isDark ? 'border-gray-600' : 'border-gray-300'}`}>
               {user && (
@@ -107,82 +134,62 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
             </div>
 
-            {/* App Controls Group */}
-            <button
-              onClick={onToggleInstructions}
-              className={`p-2 rounded-lg transition-colors duration-150 ${
-                isDark
-                  ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200'
-                  : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
-              }`}
-              title={t.header.howToUse}
-            >
-              <HelpCircle size={18} />
-            </button>
-            <button
-              onClick={onToggleTheme}
-              className={`p-2 rounded-lg transition-colors duration-150 ${
-                isDark
-                  ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200'
-                  : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
-              }`}
-              title={isDark ? t.header.switchToLight : t.header.switchToDark}
-            >
-              {isDark ? <Sun size={18} /> : <Moon size={18} />}
-            </button>
-
-            <div className="relative">
+            {/* App Controls Group - Grouped together */}
+            <div className="flex items-center gap-1">
               <button
-                onClick={() => setShowLanguageMenu(!showLanguageMenu)}
+                onClick={onToggleInstructions}
                 className={`p-2 rounded-lg transition-colors duration-150 ${
                   isDark
                     ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200'
                     : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
                 }`}
-                title={t.languages[currentLanguage as keyof typeof t.languages]}
+                title={t.header.howToUse}
               >
-                <Globe size={20} />
+                <HelpCircle size={18} />
               </button>
-              {showLanguageMenu && (
-                <div className={`absolute top-full ${isRTL ? 'left-0' : 'right-0'} mt-2 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg shadow-lg py-2 z-50 min-w-32`}>
-                  {availableLanguages.map((lang) => (
-                    <button
-                      key={lang}
-                      onClick={() => handleLanguageChange(lang)}
-                      className={`w-full px-4 py-2 text-sm text-${isRTL ? 'right' : 'left'} ${
-                        currentLanguage === lang
-                          ? isDark ? 'bg-gray-700 text-gray-100' : 'bg-gray-100 text-gray-900'
-                          : isDark ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-100'
-                      } transition-colors duration-150`}
-                    >
-                      {t.languages[lang as keyof typeof t.languages]}
-                    </button>
-                  ))}
-                </div>
-              )}
+              <button
+                onClick={onToggleTheme}
+                className={`p-2 rounded-lg transition-colors duration-150 ${
+                  isDark
+                    ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200'
+                    : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
+                }`}
+                title={isDark ? t.header.switchToLight : t.header.switchToDark}
+              >
+                {isDark ? <Sun size={18} /> : <Moon size={18} />}
+              </button>
+
+              <div className="relative">
+                <button
+                  onClick={() => setShowLanguageMenu(!showLanguageMenu)}
+                  className={`p-2 rounded-lg transition-colors duration-150 ${
+                    isDark
+                      ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200'
+                      : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
+                  }`}
+                  title={t.languages[currentLanguage as keyof typeof t.languages]}
+                >
+                  <Globe size={20} />
+                </button>
+                {showLanguageMenu && (
+                  <div className={`absolute top-full ${isRTL ? 'left-0' : 'right-0'} mt-2 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-lg shadow-lg py-2 z-50 min-w-32`}>
+                    {availableLanguages.map((lang) => (
+                      <button
+                        key={lang}
+                        onClick={() => handleLanguageChange(lang)}
+                        className={`w-full px-4 py-2 text-sm text-${isRTL ? 'right' : 'left'} ${
+                          currentLanguage === lang
+                            ? isDark ? 'bg-gray-700 text-gray-100' : 'bg-gray-100 text-gray-900'
+                            : isDark ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-100'
+                        } transition-colors duration-150`}
+                      >
+                        {t.languages[lang as keyof typeof t.languages]}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
-
-            {/* Auth Button */}
-            {user ? (
-              <button
-                onClick={onSignOut}
-                className={`p-2 rounded-lg transition-colors duration-150 ${
-                  isDark
-                    ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200'
-                    : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
-                }`}
-                title={t.auth.signOut}
-              >
-                <LogOut size={18} />
-              </button>
-            ) : (
-              <button
-                onClick={onShowAuthModal}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-150 bg-blue-600 hover:bg-blue-700 text-white`}
-              >
-                {t.auth.signIn}
-              </button>
-            )}
           </div>
         </div>
       </div>
