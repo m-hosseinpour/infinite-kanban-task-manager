@@ -1,11 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { User } from '@supabase/supabase-js'
-
-interface Column {
-  id: string;
-  tasks: { id: string; text: string }[];
-}
+import { Column } from '../types'
 
 export const useUserData = (user: User | null) => {
   const [columns, setColumns] = useState<Column[]>([
