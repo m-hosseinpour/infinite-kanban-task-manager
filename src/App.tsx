@@ -274,7 +274,7 @@ function App() {
 
 
   return (
-    <div className={`min-h-screen overflow-x-auto ${isDark ? 'bg-gray-900' : 'bg-gray-100'}`} dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className={`min-h-screen flex flex-col ${isDark ? 'bg-gray-900' : 'bg-gray-100'}`} dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Notification */}
       {notification && (
         <Notification
@@ -321,7 +321,7 @@ function App() {
       />
 
       {/* Main Content */}
-      <div className="p-6">
+      <div className="p-6 flex-1 overflow-x-auto">
         {/* Loading overlay for data */}
         {dataLoading && user && (
           <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-40">

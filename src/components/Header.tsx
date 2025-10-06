@@ -46,7 +46,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <>
-      <div className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b px-4 md:px-6 py-3`}>
+      <div className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b px-4 md:px-6 py-3 shrink-0`}>
         <div className="flex flex-col gap-3">
           {/* First Row: Title, Status, Email and Auth Button */}
           <div className="flex items-center justify-between gap-2">
