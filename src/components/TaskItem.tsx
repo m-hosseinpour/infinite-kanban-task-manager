@@ -2,7 +2,6 @@ import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Task } from '../types/kanban';
 import { useI18n } from '../hooks/useI18n';
-import { useSwipeable } from "react-swipeable";
 
 interface TaskItemProps {
   task: Task;
@@ -26,16 +25,12 @@ export const TaskItem = React.memo<TaskItemProps>(({
   onDelete
 }) => {
   const { t, isRTL } = useI18n();
-  const swipeableHandlers = useSwipeable({
-    ...(canMoveLeft && { onSwipedLeft: () => onMoveLeft(task.id, columnId) }),
-    ...(canMoveRight && { onSwipedRight: () => onMoveRight(task.id, columnId) }),
-  });
 
   return (
     <div className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-lg border p-3 shadow-sm hover:shadow-md transition-shadow duration-200 group`}>
       <div className="flex items-start justify-between">
         <span className={`text-sm ${isDark ? 'text-gray-200' : 'text-gray-800'} flex-1 leading-relaxed`}>{task.text}</span>
-        <div {...swipeableHandlers} className="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200">
+        <div className="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200">
           {canMoveLeft && (
             <button
               onClick={() => onMoveLeft(task.id, columnId)}
