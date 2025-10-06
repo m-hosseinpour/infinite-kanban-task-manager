@@ -274,7 +274,7 @@ function App() {
 
 
   return (
-    <div className={`min-h-screen ${isDark ? 'bg-gray-900' : 'bg-gray-100'}`} dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className={`min-h-screen overflow-x-auto ${isDark ? 'bg-gray-900' : 'bg-gray-100'}`} dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Notification */}
       {notification && (
         <Notification
@@ -321,7 +321,7 @@ function App() {
       />
 
       {/* Main Content */}
-      <div className="p-6 overflow-x-auto">
+      <div className="p-6">
         {/* Loading overlay for data */}
         {dataLoading && user && (
           <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-40">
@@ -334,11 +334,11 @@ function App() {
           </div>
         )}
 
-        <div className="flex gap-6 pb-6" style={{ minWidth: 'max-content' }}>
+        <div className="flex gap-6" style={{ minWidth: 'max-content' }}>
           {columns.map((column, index) => (
-            <TaskColumn 
-              key={column.id} 
-              column={column} 
+            <TaskColumn
+              key={column.id}
+              column={column}
               index={index}
               totalColumns={columns.length}
               isDark={isDark}
