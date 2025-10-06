@@ -71,7 +71,7 @@ export const Header: React.FC<HeaderProps> = ({
             {user ? (
               <button
                 onClick={onSignOut}
-                className={`p-2 rounded-lg transition-colors duration-150 flex-shrink-0 ${
+                className={`p-1.5 rounded-lg transition-colors duration-150 flex-shrink-0 ${
                   isDark
                     ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200'
                     : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
@@ -93,12 +93,12 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Second Row: Action Buttons */}
           <div className="flex items-center justify-between gap-2">
             {/* Import/Export Group */}
-            <div className={`flex items-center gap-1 px-2 py-1 rounded-lg border ${isDark ? 'border-gray-600' : 'border-gray-300'}`}>
+            <div className={`flex items-center gap-1.5 px-1 py-0.5 rounded-lg border ${isDark ? 'border-gray-600' : 'border-gray-300'}`}>
               {user && (
                 <button
                   onClick={onManualSave}
                   disabled={saving}
-                  className={`p-2 rounded-lg transition-colors duration-150 ${
+                  className={`p-1.5 rounded-lg transition-colors duration-150 ${
                     saving
                       ? isDark ? 'text-gray-600' : 'text-gray-400'
                       : isDark
@@ -112,7 +112,7 @@ export const Header: React.FC<HeaderProps> = ({
               )}
               <button
                 onClick={onExport}
-                className={`p-2 rounded-lg transition-colors duration-150 ${
+                className={`p-1.5 rounded-lg transition-colors duration-150 ${
                   isDark
                     ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200'
                     : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
@@ -123,7 +123,7 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
               <button
                 onClick={onImport}
-                className={`p-2 rounded-lg transition-colors duration-150 ${
+                className={`p-1.5 rounded-lg transition-colors duration-150 ${
                   isDark
                     ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200'
                     : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
@@ -138,7 +138,7 @@ export const Header: React.FC<HeaderProps> = ({
             <div className="flex items-center gap-1">
               <button
                 onClick={onToggleInstructions}
-                className={`p-2 rounded-lg transition-colors duration-150 ${
+                className={`p-1.5 rounded-lg transition-colors duration-150 ${
                   isDark
                     ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200'
                     : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
@@ -149,7 +149,7 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
               <button
                 onClick={onToggleTheme}
-                className={`p-2 rounded-lg transition-colors duration-150 ${
+                className={`p-1.5 rounded-lg transition-colors duration-150 ${
                   isDark
                     ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200'
                     : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
@@ -162,7 +162,7 @@ export const Header: React.FC<HeaderProps> = ({
               <div className="relative">
                 <button
                   onClick={() => setShowLanguageMenu(!showLanguageMenu)}
-                  className={`p-2 rounded-lg transition-colors duration-150 ${
+                  className={`p-1.5 rounded-lg transition-colors duration-150 ${
                     isDark
                       ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-200'
                       : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'

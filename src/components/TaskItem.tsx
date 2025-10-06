@@ -14,10 +14,10 @@ interface TaskItemProps {
   onDelete: (taskId: string, columnId: string) => void;
 }
 
-export const TaskItem = React.memo<TaskItemProps>(({ 
-  task, 
-  columnId, 
-  canMoveLeft, 
+export const TaskItem = React.memo<TaskItemProps>(({
+  task,
+  columnId,
+  canMoveLeft,
   canMoveRight,
   isDark,
   onMoveLeft,
@@ -28,7 +28,7 @@ export const TaskItem = React.memo<TaskItemProps>(({
 
   return (
     <div className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-lg border p-3 shadow-sm hover:shadow-md transition-shadow duration-200 group`}>
-      <div className="flex items-start justify-between gap-2">
+      <div className="flex items-start justify-between">
         <span className={`text-sm ${isDark ? 'text-gray-200' : 'text-gray-800'} flex-1 leading-relaxed`}>{task.text}</span>
         <div className="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200">
           {canMoveLeft && (

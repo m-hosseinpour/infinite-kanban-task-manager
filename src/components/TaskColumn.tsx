@@ -76,12 +76,12 @@ export const TaskColumn: React.FC<TaskColumnProps> = ({
   };
 
   return (
-    <div className={`flex-shrink-0 w-80 ${isDark ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-200'} rounded-xl border p-4 shadow-sm`}>
+    <div className={`flex-shrink-0 w-80 ${isDark ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-200'} rounded-xl border p-4 shadow-sm flex flex-col gap-3`}>
       {/* Column Header with Add Buttons */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between">
         <button
           onClick={() => onAddColumnLeft(column.id)}
-          className={`p-2 rounded-lg ${isDark ? 'hover:bg-gray-800 text-gray-400 hover:text-gray-200' : 'hover:bg-gray-200 text-gray-600 hover:text-gray-800'} transition-colors duration-150`}
+          className={`p-1.5 rounded-lg ${isDark ? 'hover:bg-gray-800 text-gray-400 hover:text-gray-200' : 'hover:bg-gray-200 text-gray-600 hover:text-gray-800'} transition-colors duration-150`}
           title={isRTL ? t.column.addColumnRight : t.column.addColumnLeft}
         >
           <Plus size={18} />
@@ -89,7 +89,7 @@ export const TaskColumn: React.FC<TaskColumnProps> = ({
 
         <div className="flex items-center gap-2">
           <h3 className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-            {t.column.title} {index + 1}
+            {t.column.title} {index + 1} ({column.tasks.length})
           </h3>
           {column.tasks.length > 0 && (
             <button
@@ -113,35 +113,10 @@ export const TaskColumn: React.FC<TaskColumnProps> = ({
 
         <button
           onClick={() => onAddColumnRight(column.id)}
-          className={`p-2 rounded-lg ${isDark ? 'hover:bg-gray-800 text-gray-400 hover:text-gray-200' : 'hover:bg-gray-200 text-gray-600 hover:text-gray-800'} transition-colors duration-150`}
+          className={`p-1.5 rounded-lg ${isDark ? 'hover:bg-gray-800 text-gray-400 hover:text-gray-200' : 'hover:bg-gray-200 text-gray-600 hover:text-gray-800'} transition-colors duration-150`}
           title={isRTL ? t.column.addColumnLeft : t.column.addColumnRight}
         >
           <Plus size={18} />
-        </button>
-      </div>
-
-      {/* Input Area */}
-      <div className="mb-4">
-        <textarea
-          value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
-          onKeyDown={handleKeyPress}
-          placeholder={t.column.placeholder}
-          className={`w-full h-24 p-3 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${
-            isDark
-              ? 'bg-gray-800 border-gray-600 text-gray-200 placeholder-gray-400'
-              : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-          }`}
-        />
-        <button
-          onClick={handleAddTasks}
-          className={`mt-2 w-full py-2 px-4 rounded-lg transition-colors duration-150 text-sm font-medium ${
-            isDark
-              ? 'bg-blue-600 hover:bg-blue-700 text-white'
-              : 'bg-blue-600 hover:bg-blue-700 text-white'
-          }`}
-        >
-          {t.column.addTasks}
         </button>
       </div>
 
@@ -166,6 +141,31 @@ export const TaskColumn: React.FC<TaskColumnProps> = ({
             />
           ))
         )}
+      </div>
+
+      {/* Input Area */}
+      <div>
+        <textarea
+          value={inputText}
+          onChange={(e) => setInputText(e.target.value)}
+          onKeyDown={handleKeyPress}
+          placeholder={t.column.placeholder}
+          className={`w-full h-24 p-3 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${
+            isDark
+              ? 'bg-gray-800 border-gray-600 text-gray-200 placeholder-gray-400'
+              : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+          }`}
+        />
+        <button
+          onClick={handleAddTasks}
+          className={`w-full py-2 px-4 rounded-lg transition-colors duration-150 text-sm font-medium ${
+            isDark
+              ? 'bg-blue-600 hover:bg-blue-700 text-white'
+              : 'bg-blue-600 hover:bg-blue-700 text-white'
+          }`}
+        >
+          {t.column.addTasks}
+        </button>
       </div>
     </div>
   );

@@ -37,13 +37,14 @@ export const translations: Record<string, Translations> = {
       title: 'How to use:',
       items: [
         'Type tasks in any column (each line becomes one task)',
+        'Use Ctrl+Enter to quickly add tasks',
         'Click + buttons to add columns to the left or right',
         'Hover over tasks to see move and delete buttons',
-        'Use Ctrl+Enter to quickly add tasks',
         'Copy button copies all column tasks to clipboard',
         'Delete button removes column (tasks copied first)',
         'Export button saves all your data to a file',
         'Import button loads data from a previously exported file',
+        'I create and login with account, data will save automatically',
       ],
     },
     languages: {
@@ -105,13 +106,14 @@ export const translations: Record<string, Translations> = {
       title: 'نحوه استفاده:',
       items: [
         'وظایف را در هر ستون تایپ کنید (هر خط یک وظیفه می‌شود)',
+        'از Ctrl+Enter برای افزودن سریع وظایف استفاده کنید',
         'روی دکمه‌های + کلیک کنید تا ستون‌هایی به چپ یا راست اضافه شود',
         'موس را روی وظایف ببرید تا دکمه‌های انتقال و حذف را ببینید',
-        'از Ctrl+Enter برای افزودن سریع وظایف استفاده کنید',
         'دکمه کپی همه وظایف ستون را در کلیپ‌بورد کپی می‌کند',
         'دکمه حذف ستون را حذف می‌کند (ابتدا وظایف کپی می‌شوند)',
         'دکمه خروجی همه داده‌های شما را در یک فایل ذخیره می‌کند',
         'دکمه ورودی داده‌ها را از فایل قبلاً ذخیره شده بارگذاری می‌کند',
+        'در صورت ساخت و لاگین با حساب، داده‌ها به صورت اتوماتیک ذخیره می‌شوند',
       ],
     },
     languages: {
