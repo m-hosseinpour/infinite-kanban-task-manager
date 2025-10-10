@@ -49,7 +49,6 @@ export const translations: Record<string, Translations> = {
         'Auto-save indicator shows when your data is being saved (green dot = saved, yellow = saving)',
         'Switch between light and dark themes using the theme toggle button',
         'Change language using the globe icon (supports multiple languages)',
-        'All data persists locally in your browser even without an account',
       ],
     },
     languages: {
@@ -123,7 +122,6 @@ export const translations: Record<string, Translations> = {
         'نشانگر ذخیره خودکار وضعیت ذخیره داده‌ها را نشان می‌دهد (نقطه سبز = ذخیره شده، زرد = در حال ذخیره)',
         'با استفاده از دکمه تغییر تم بین حالت روشن و تاریک جابجا شوید',
         'با استفاده از آیکون کره زمین زبان را تغییر دهید (پشتیبانی از چند زبان)',
-        'تمام داده‌ها حتی بدون حساب کاربری به صورت محلی در مرورگر شما ذخیره می‌شوند',
       ],
     },
     languages: {
